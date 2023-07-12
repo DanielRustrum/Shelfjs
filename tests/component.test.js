@@ -1,0 +1,1 @@
+console.log(Shelf.component`<div>test</div>`)
