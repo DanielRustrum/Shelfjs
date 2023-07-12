@@ -29,7 +29,6 @@
     }
 
     function buildVDOM(template) {
-        console.log(template)
         let root = {
             type: "component",
             children: []
@@ -37,39 +36,124 @@
 
         let current_node = root
 
-        let node_stack = [],
-            current_attr = [],
+        let stack = [],
+            attribute = [],
             node_attrs = [],
-            content_array = []
+            content = []
         
         let last_char = "",
-            tag_string = "",
-            attr_string = "",
-            content_string = ""
+            element = "",
+            partial_attribute = "",
+            partial_content = ""
+        
         
         let in_tag = false,
             in_close_tag = false,
             in_content = false,
             in_attributes = false
-
-        node_stack.push(root)
+        
+        stack.push(root)
 
         for(let segment of template) {
             if(typeof segment === "string") {
-                for(let char in segment) {
+                for(let char of segment) {
                     // Attrs                
-                    
+                    if(
+                        in_tag && 
+                        (char === "=" || char === " " || char === ">") 
+                        && in_attributes 
+                        && !in_close_tag
+                    ) { 
+                        if(partial_attribute !== "")
+                            attribute.push(partial_attribute);
+                        partial_attribute = ""
+                    }
+                    if(
+                        in_tag && 
+                        (char === " " || char === ">") && 
+                        in_attributes && 
+                        !in_close_tag
+                    ){
+                        if(attribute.length !== 0)
+                            node_attrs.push(attribute);
+                        attribute = []
+                    }
                     
                     // Build Strings               
+                    if(
+                        in_tag && 
+                        !in_attributes && 
+                        !["/", " ", ">"].includes(char) &&
+                        !in_close_tag
+                    )
+                        element += char;
                     
+                    if(
+                        in_tag && 
+                        in_attributes && 
+                        !["/", " ", ">", "=", "\"", "'"].includes(char) &&
+                        !in_close_tag
+                    ) 
+                        partial_attribute += char;
                     
+                    if(in_content && char !== '<') 
+                        partial_content += char;
                     
+                    // Start Of Tag
+                    if(char === "<") {
+                        in_content = false
+                        if(partial_content !== "")
+                            content.push(partial_content);
+                        if(content.length !== 0 && current_node)
+                            current_node.children.push(content);
+                        content = []
+                        partial_content = ""
+                    }
+                    
+                    // End of Tag                
+                    if(char === ">") {
+                        if(in_tag) {
+                            let node = {
+                                type: 'node',
+                                children: []
+                            }
+
+                            if(!in_close_tag) {
+                                node["element"] = element
+                                node["attrs"] = node_attrs
+                                current_node.children.push(node)
+                                
+                                if(last_char !== "/") {
+                                    stack.push(current_node)
+                                    current_node = node
+                                }
+
+                            } else {
+                                current_node = stack.pop()
+                            }
+                            
+
+                            in_tag = false
+                            in_close_tag = false
+                            in_attributes = false
+
+                            node_attrs = []
+                            element = ""
+                        }
+                        
+                        in_content = true
+                    }
                     
                     // Toggle States                
-                    
+                    if(in_tag && char === " ") 
+                        in_attributes = true;
+                    if(char === "<") 
+                        in_tag = true;
+                    if(last_char === "<" && char === "/") 
+                        in_close_tag = true;
                     
                     // Track Char                
-                    
+                    last_char = char
                 }
             }
         }
@@ -87,8 +171,3 @@
 
     Shelf.render = render
 }
-
-
-console.log(
-    Shelf.component`<div>sdfsdfsd</div>`
-)
