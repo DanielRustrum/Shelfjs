@@ -15,12 +15,15 @@
                 (
                     Array.isArray(values[index]) && 
                     values[index][0].render_type === "signal"
+                ) ||
+                values[index].render_type === "component" || (
+                    Array.isArray(values[index]) && 
+                    values[index][0].render_type === "component"
                 )
             ) {
                 new_result.push(current_string)
                 current_string = ""
                 new_result.push(values[index])
-                continue
             } else {
                 current_string += values[index]
             }
@@ -173,8 +176,31 @@
                     content.push(segment)
                     partial_content = ""
                 }
+                
                 if(in_attributes) {
                     attribute.push(segment)
+                }
+            }
+
+            if(segment.render_type === 'component') {
+                current_node.children.push(segment)
+            }
+
+            if(Array.isArray(segment)) {
+                if(segment[0].render_type === "signal") {
+                    if(in_content) {
+                        content.push(partial_content)
+                        content.push(segment)
+                        partial_content = ""
+                    }
+
+                    if(in_attributes) {
+                        attribute.push(segment)
+                    }
+                }
+
+                if(segment[0].render_type === "component") {
+                    current_node.children.push(...segment)
                 }
             }
         }
@@ -201,7 +227,7 @@
         if(VDOM.render_type === 'component') {
             let node_fragment = new DocumentFragment()
             for (let node of VDOM.children) {
-                let [result_node, data] = buildFragment(node)
+                let [result_node, _] = buildFragment(node)
                 node_fragment.append(result_node)
             }
             return [node_fragment, {}]
@@ -217,6 +243,38 @@
                     element.setAttribute(attr[0], attr[1].value)
                     Shelf.bindToSignal(attr[1], value => {
                         element.setAttribute(attr[0], value)
+                    })
+                } else if(
+                    Array.isArray(attr[1]) && attr[1][0].render_type === 'signal'
+                ) {
+                    if(attr[1][1].constructor.name == 'AsyncFunction')
+                        element.setAttribute(
+                            attr[0], 
+                            attr[1][1]()
+                            .then(()=>{})
+                            .catch(error=>{
+                                throw error;
+                            })
+                        );
+                    else element.setAttribute(
+                        attr[0], 
+                        attr[1][1]()
+                    );
+
+                    Shelf.bindToSignal(attr[1][0], () => {
+                        if(attr[1][1].constructor.name == 'AsyncFunction')
+                            element.setAttribute(
+                                attr[0], 
+                                attr[1][1]()
+                                .then(()=>{})
+                                .catch(error=>{
+                                    throw error;
+                                })
+                            );
+                        else element.setAttribute(
+                            attr[0], 
+                            attr[1][1]()
+                        );
                     })
                 }
                 else
@@ -256,9 +314,17 @@
         let content_string = ""
         let signals_content = []
         for(let content of VDOM) {
-            if (content.render_type === "signal") {
+            if (
+                content.render_type === "signal"
+            ) {
                 content_string += content.value
                 signals_content.push(content)
+            } else if(Array.isArray(content) && content[0].render_type === 'signal') {
+                if(content[1].constructor.name == 'AsyncFunction')
+                    content_string += content[1]().then(()=>{}).catch(error=>{throw error;});
+                else content_string += content[1]();
+
+                signals_content.push(content[0])
             } else {
                 content_string += content
             }

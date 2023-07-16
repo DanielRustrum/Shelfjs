@@ -19,6 +19,19 @@
 
     Shelf.signal = signal
 
+    function trigger() {
+        let signal_obj = {
+            render_type: 'signal',
+            subscribed: [],
+            trigger: () => {
+                this.subscribed.forEach(callback => callback(new_value))
+            }
+        }
+        
+        return signal_obj
+    }
+    Shelf.trigger = trigger
+
     
     function bind(signal, callback) {
         signal.subscribed.push(callback)

@@ -7,3 +7,10 @@ A Front-End JS Library for me to use
 - Handle Data Transformations
 - Respond to Component Changes
 - Hide Standard DOM Interactions
+
+## Implementation Plan
+[x] Signals
+
+Components:
+Rendering:
+[ ] 

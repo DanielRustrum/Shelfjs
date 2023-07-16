@@ -202,6 +202,48 @@ ShelfDev.group("Rendering")
             )
         }
     )
+
+    ShelfDev.observe(
+        "Content Signals Function", 
+        () => {
+            let sig = Shelf.signal(0)
+
+            setInterval(() => {
+                sig.value += 1
+            }, 1000)
+
+            Shelf.render(
+                Shelf.component`<div>
+                    <p>counter 3: ${[sig, () => {
+                        return  Math.random() * 300
+                    }]}</p>
+                </div>
+                `,
+                "app5"
+            )
+        }
+    )
+
+    ShelfDev.observe(
+        "Content Signals Function in Attributes", 
+        () => {
+            let sig = Shelf.signal(0)
+
+            setInterval(() => {
+                sig.value += 1
+            }, 1000)
+
+            Shelf.render(
+                Shelf.component`<div>
+                    <div counter=${[sig, () => {
+                        return  Math.random() * 300
+                    }]}>Stuff here</div>
+                </div>
+                `,
+                "app6"
+            )
+        }
+    )
 ShelfDev.endGroup()
 
 ShelfDev.run()
