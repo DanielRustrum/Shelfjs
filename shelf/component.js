@@ -27,7 +27,6 @@
         }
         
         new_result.push(current_string + strings[strings.length - 1])
-        console.log(new_result)
         return new_result
     }
 
@@ -189,6 +188,15 @@
 
     Shelf.component = component
     
+
+    // Global Shelf Component Data
+    let GSCD = {
+        component_scope: globalThis
+    }
+
+    function define() {}
+
+
     function buildFragment(VDOM) {
         if(VDOM.render_type === 'component') {
             let node_fragment = new DocumentFragment()
@@ -205,6 +213,12 @@
             for (let attr of VDOM.attrs) {
                 if (attr.length === 1)
                     element.setAttribute(attr[0], "");
+                else if(attr[1].render_type === 'signal') {
+                    element.setAttribute(attr[0], attr[1].value)
+                    Shelf.bindToSignal(attr[1], value => {
+                        element.setAttribute(attr[0], value)
+                    })
+                }
                 else
                     element.setAttribute(attr[0], attr[1]);       
             }
@@ -258,39 +272,22 @@
 
     function render(
         renderer,
-        root_selector,
-        render_options = {}
+        root,
+        method = "dom"
     ) {
-        let options = {
-            attributes:{},
-            carry_attributes: false,
-            component_scope: globalThis,
-            prerender: false,
-            render_to: "component",
-            ...render_options
+        let parents 
+        if(typeof root === 'string') {
+            parents = document.querySelectorAll(root)
+        } else {
+            parents = root
         }
-
-        let parents = document.querySelectorAll(root_selector)
         
         for(let parent of parents) {
-            let comp_func_attrs = {
-                ...options.attributes,
-                children: parent?.innerHTML
-            }
-            
-            // if(options.carry_attributes) {
-            //     for(let attr_name of parent.getAttributeNames()) {
-            //         comp_func_attrs[attr_name] = parent.getAttribute(attr_name)
-            //     }
-            // }
-            
-            let [ready_dom_tree, data] = buildFragment(
+            let [dom_fragment, _] = buildFragment(
                 renderer
             )
 
-            console.log(ready_dom_tree)
-            
-            parent.after(ready_dom_tree)
+            parent.after(dom_fragment)
             parent.remove()
         }
     }

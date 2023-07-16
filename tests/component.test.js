@@ -140,7 +140,7 @@ ShelfDev.endGroup()
 
 ShelfDev.group("Rendering")
     ShelfDev.observe(
-        "Single Line", 
+        "Basic", 
         () => {
             Shelf.render(
                 Shelf.component`<h1>test</h1>`,
@@ -150,7 +150,7 @@ ShelfDev.group("Rendering")
     )
 
     ShelfDev.observe(
-        "Single Line with Signal", 
+        "Content Signal", 
         () => {
             let sig = Shelf.signal(0)
 
@@ -159,8 +159,46 @@ ShelfDev.group("Rendering")
             }, 1000)
 
             Shelf.render(
-                Shelf.component`<h2>count: ${sig} <p>hello world!</p></h2>`,
+                Shelf.component`<h2>
+                    count: ${sig} 
+                    <p>hello world!</p>
+                    This Doesn't Mutate</h2>`,
                 "app2"
+            )
+        }
+    )
+
+    ShelfDev.observe(
+        "Attribute Signals", 
+        () => {
+            let sig = Shelf.signal(0)
+
+            setInterval(() => {
+                sig.value += 1
+            }, 1000)
+
+            Shelf.render(
+                Shelf.component`<h2 data-signal=${sig}>Another</h2>`,
+                "app3"
+            )
+        }
+    )
+
+    ShelfDev.observe(
+        "Content Signals Deep", 
+        () => {
+            let sig = Shelf.signal(0)
+
+            setInterval(() => {
+                sig.value += 1
+            }, 1000)
+
+            Shelf.render(
+                Shelf.component`<div>
+                    <p>counter 2: ${sig}</p>
+                </div>
+                `,
+                "app4"
             )
         }
     )
