@@ -220,7 +220,7 @@
         component_scope: globalThis
     }
 
-    function define() {}
+    function define(key, value) {}
 
 
     function buildFragment(VDOM) {
@@ -336,7 +336,7 @@
 
     }
 
-    function render(
+    function renderVDOM(
         renderer,
         root,
         method = "dom"
