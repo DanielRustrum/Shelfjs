@@ -341,22 +341,20 @@
         root,
         method = "dom"
     ) {
-        let parents 
-        if(typeof root === 'string') {
-            parents = document.querySelectorAll(root)
-        } else {
-            parents = root
-        }
-        
-        for(let parent of parents) {
-            let [dom_fragment, _] = buildFragment(
-                renderer
-            )
+        let [dom_fragment, _] = buildFragment(
+            renderer
+        )
 
-            parent.after(dom_fragment)
-            parent.remove()
+        if(root instanceof NodeList) {
+            for(let parent of root) {
+                parent.after(dom_fragment)
+                parent.remove()
+            }
+        } else {
+            root.after(dom_fragment)
+            root.remove()
         }
     }
 
-    Shelf.render = render
+    Shelf.renderVDOM = renderVDOM
 }

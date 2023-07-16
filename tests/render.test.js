@@ -4,7 +4,7 @@ ShelfDev.group("Rendering")
         () => {
             Shelf.renderVDOM(
                 Shelf.component`<h1>test</h1>`,
-                "app"
+                document.querySelector("app")
             )
         }
     )
@@ -22,8 +22,9 @@ ShelfDev.group("Rendering")
                 Shelf.component`<h2>
                     count: ${sig} 
                     <p>hello world!</p>
-                    This Doesn't Mutate</h2>`,
-                "app2"
+                    This Doesn't Mutate
+                </h2>`,
+                document.querySelector("app2")
             )
         }
     )
@@ -39,7 +40,7 @@ ShelfDev.group("Rendering")
 
             Shelf.renderVDOM(
                 Shelf.component`<h2 data-signal=${sig}>Another</h2>`,
-                "app3"
+                document.querySelector("app3")
             )
         }
     )
@@ -58,7 +59,7 @@ ShelfDev.group("Rendering")
                     <p>counter 2: ${sig}</p>
                 </div>
                 `,
-                "app4"
+                document.querySelector("app4")
             )
         }
     )
@@ -79,7 +80,7 @@ ShelfDev.group("Rendering")
                     }]}</p>
                 </div>
                 `,
-                "app5"
+                document.querySelectorAll("app5")
             )
         }
     )
@@ -100,7 +101,7 @@ ShelfDev.group("Rendering")
                     }]}>Stuff here</div>
                 </div>
                 `,
-                "app6"
+                document.querySelector("app6")
             )
         }
     )
