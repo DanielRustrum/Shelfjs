@@ -217,11 +217,25 @@
 
     // Global Shelf Component Data
     let GSCD = {
-        component_scope: globalThis
+        component_scope: globalThis,
+        render_method: "dom",
+        use_root_data: false
     }
 
-    function define(key, value) {}
+    function define(key, value = undefined) {
+        switch(key) {
+            case "scope":
+                GSCD.component_scope = value || globalThis
+                break
+            case "render":
+                GSCD.render_method = value || "dom"
+                break
+            case "use root data":
+                GSCD.use_root_data = value || false
+        }
+    }
 
+    Shelf.define = define
 
     function buildFragment(VDOM) {
         if(VDOM.render_type === 'component') {
@@ -336,10 +350,21 @@
 
     }
 
+    function mountFragement(root, fragment) {
+        switch(GSCD.render_method) {
+            case "dom":
+                root.after(fragment)
+                root.remove()
+                break
+            case "inject":
+                root.replaceChildren(fragment)
+                break
+        }
+    }
+
     function renderVDOM(
         renderer,
-        root,
-        method = "dom"
+        root
     ) {
         let [dom_fragment, _] = buildFragment(
             renderer
@@ -347,14 +372,51 @@
 
         if(root instanceof NodeList) {
             for(let parent of root) {
-                parent.after(dom_fragment)
-                parent.remove()
+                mountFragement(parent, dom_fragment)
             }
         } else {
-            root.after(dom_fragment)
-            root.remove()
+            mountFragement(root, dom_fragment)
+
         }
     }
 
     Shelf.renderVDOM = renderVDOM
+
+    function render(
+        renderer,
+        query
+    ) {
+        let root = document.querySelectorAll(query)
+
+        for(let node of root) {
+            if(GSCD.use_root_data) {
+                let component_data = {
+                    children: {
+                        type: "child",
+                        content: node.innerHTML
+                    }
+                }
+    
+                for (const name of node.getAttributeNames()) {
+                    const value = node.getAttribute(name)
+                    component_data[name] = value
+                }
+            } else {
+                component_data = {
+                    children: ""
+                }
+            }
+            
+            if(typeof renderer === 'function') {
+                let [dom_fragment, _] = buildFragment(renderer(component_data))
+                mountFragement(node, dom_fragment)
+            }
+            else {
+                let [dom_fragment, _] = buildFragment(renderer)
+                mountFragement(node, dom_fragment)
+            }
+        }       
+    }
+
+    Shelf.render = render
 }
