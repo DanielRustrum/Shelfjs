@@ -5,7 +5,7 @@ ShelfDev.group("Rendering")
         () => {
             test_element.append(document.createElement("app"))
             Shelf.renderVDOM(
-                Shelf.component`<h1>test</h1>`,
+                Shelf.template`<h1>test</h1>`,
                 document.querySelector("app")
             )
         }
@@ -23,7 +23,7 @@ ShelfDev.group("Rendering")
             }, 1000)
 
             Shelf.renderVDOM(
-                Shelf.component`<h2>
+                Shelf.template`<h2>
                     count: ${sig} 
                     <p>hello world!</p>
                     This Doesn't Mutate
@@ -45,7 +45,7 @@ ShelfDev.group("Rendering")
             }, 1000)
 
             Shelf.renderVDOM(
-                Shelf.component`<h2 data-signal=${sig}>Another</h2>`,
+                Shelf.template`<h2 data-signal=${sig}>Another</h2>`,
                 document.querySelector("app3")
             )
         }
@@ -63,7 +63,7 @@ ShelfDev.group("Rendering")
             }, 1000)
 
             Shelf.renderVDOM(
-                Shelf.component`<div>
+                Shelf.template`<div>
                     <p>counter 2: ${sig}</p>
                 </div>
                 `,
@@ -84,7 +84,7 @@ ShelfDev.group("Rendering")
             }, 1000)
 
             Shelf.renderVDOM(
-                Shelf.component`<div>
+                Shelf.template`<div>
                     <p>counter 3: ${[sig, () => {
                         return  Math.random() * 300
                     }]}</p>
@@ -107,7 +107,7 @@ ShelfDev.group("Rendering")
             }, 1000)
 
             Shelf.renderVDOM(
-                Shelf.component`<div>
+                Shelf.template`<div>
                     <div counter=${[sig, () => {
                         return  Math.random() * 300
                     }]}>Stuff here</div>
@@ -124,7 +124,7 @@ ShelfDev.group("Rendering")
             test_element.append(document.createElement("app7"))
 
             Shelf.render(
-                Shelf.component`<h1>test</h1>`,
+                Shelf.template`<h1>test</h1>`,
                 "app7"
             )
         }
@@ -144,7 +144,7 @@ ShelfDev.group("Function Rendering")
                     sig.value += 1
                 }, 1000)
 
-                return Shelf.component`<div>
+                return Shelf.template`<div>
                     <div counter=${[sig, () => {
                         return  Math.random() * 300
                     }]}>Stuff here</div>

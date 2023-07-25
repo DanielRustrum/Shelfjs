@@ -19,7 +19,8 @@
                 values[index].render_type === "component" || (
                     Array.isArray(values[index]) && 
                     values[index][0].render_type === "component"
-                )
+                ) ||
+                values[index].render_type === "child"
             ) {
                 new_result.push(current_string)
                 current_string = ""
@@ -182,7 +183,10 @@
                 }
             }
 
-            if(segment.render_type === 'component') {
+            if(
+                segment.render_type === 'component' ||
+                segment.render_type === 'child'
+            ) {
                 current_node.children.push(segment)
             }
 
@@ -208,17 +212,17 @@
         return root
     }
     
-    function component(strings, ...values) {
+    function template(strings, ...values) {
         return buildVDOM(collapseTemplate(strings, values))
     }
 
-    Shelf.component = component
+    Shelf.template = template
     
 
     // Global Shelf Component Data
     let GSCD = {
         component_scope: globalThis,
-        render_method: "dom",
+        render_method: "replaced",
         use_root_data: false
     }
 
@@ -228,7 +232,7 @@
                 GSCD.component_scope = value || globalThis
                 break
             case "render":
-                GSCD.render_method = value || "dom"
+                GSCD.render_method = value || "replaced"
                 break
             case "use root data":
                 GSCD.use_root_data = value || false
@@ -304,7 +308,10 @@
                     signals.push([index, data.signals, node])
                 }
                 
-                element.append(result_node)
+                if(typeof result_node === 'string')
+                    element.insertAdjacentHTML('beforeend', result_node);
+                else
+                    element.append(result_node);
                 index += 1
             }
 
@@ -323,6 +330,10 @@
             }
             
             return [element, {}]
+        }
+
+        if (VDOM.render_type === 'child') {
+            return [VDOM.content, {}]
         }
 
         let content_string = ""
@@ -352,11 +363,11 @@
 
     function mountFragement(root, fragment) {
         switch(GSCD.render_method) {
-            case "dom":
+            case "replaced":
                 root.after(fragment)
                 root.remove()
                 break
-            case "inject":
+            case "injected":
                 root.replaceChildren(fragment)
                 break
         }
@@ -392,7 +403,7 @@
             if(GSCD.use_root_data) {
                 let component_data = {
                     children: {
-                        type: "child",
+                        render_type: "child",
                         content: node.innerHTML
                     }
                 }
