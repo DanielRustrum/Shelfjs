@@ -1,4 +1,6 @@
 {
+    const component_map = new Map()
+    
     function collapseTemplate(strings, values) {
         let current_string = "", 
             new_result = []
@@ -16,16 +18,20 @@
                     Array.isArray(values[index]) && 
                     values[index][0].render_type === "signal"
                 ) ||
-                values[index].render_type === "template" || (
-                    Array.isArray(values[index]) && 
-                    values[index][0].render_type === "template"
-                ) ||
+                values[index].render_type === "template" ||
                 values[index].render_type === "child" ||
                 typeof values[index] === 'function'
             ) {
                 new_result.push(current_string)
                 current_string = ""
                 new_result.push(values[index])
+            } else if(
+                Array.isArray(values[index]) && 
+                values[index][0].render_type === "template"
+            ) {
+                new_result.push(current_string)
+                current_string = ""
+                new_result.push(...values[index])
             } else {
                 current_string += values[index]
             }
@@ -224,29 +230,27 @@
     }
 
     Shelf.template = template
-    
 
-    // Global Shelf Component Data
-    let GSCD = {
-        component_scope: globalThis,
-        render_method: "replaced",
-        use_root_data: false
-    }
+    function component(
+        component_function,
+        expected_attributes = [],
+        name = undefined
+    ) {
+        component_map.set(
+            name || component_function.name,
+            [
+                component_function, 
+                expected_attributes
+            ]
+        )
 
-    function define(key, value = undefined) {
-        switch(key) {
-            case "scope":
-                GSCD.component_scope = value || globalThis
-                break
-            case "render":
-                GSCD.render_method = value || "replaced"
-                break
-            case "use root data":
-                GSCD.use_root_data = value || false
+        return {
+            render_type: 'component',
+            name: name || component_function.name
         }
     }
 
-    Shelf.define = define
+    Shelf.component = component
 
     function buildFragment(VDOM) {
         if(VDOM.render_type === 'template') {
@@ -380,8 +384,8 @@
 
     }
 
-    function mountFragement(root, fragment) {
-        switch(GSCD.render_method) {
+    function mountFragement(root, fragment, method) {
+        switch(method) {
             case "replaced":
                 root.after(fragment)
                 root.remove()
@@ -392,56 +396,33 @@
         }
     }
 
-    function renderVDOM(
-        renderer,
-        root
-    ) {
-        let [dom_fragment, _] = buildFragment(
-            renderer
-        )
-
-        if(root instanceof NodeList) {
-            for(let parent of root) {
-                mountFragement(parent, dom_fragment)
-            }
-        } else {
-            mountFragement(root, dom_fragment)
-
-        }
-    }
-
     function render(
         renderer,
-        query
+        query,
+        method = "replaced"
     ) {
         let root = document.querySelectorAll(query)
 
         for(let node of root) {
-            if(GSCD.use_root_data) {
-                let component_data = {
-                    children: {
-                        render_type: "child",
-                        content: node.innerHTML
-                    }
-                }
-    
-                for (const name of node.getAttributeNames()) {
-                    const value = node.getAttribute(name)
-                    component_data[name] = value
-                }
-            } else {
-                component_data = {
-                    children: ""
-                }
-            }
+            //     let component_data = {
+            //         children: {
+            //             render_type: "child",
+            //             content: node.innerHTML
+            //         }
+            //     }
+
+            //     for (const name of node.getAttributeNames()) {
+            //         const value = node.getAttribute(name)
+            //         component_data[name] = value
+            //     }
             
-            if(typeof renderer === 'function') {
-                let [dom_fragment, _] = buildFragment(renderer(component_data))
-                mountFragement(node, dom_fragment)
+            if(typeof renderer === 'function') { 
+                let [dom_fragment, _] = buildFragment(renderer())
+                mountFragement(node, dom_fragment, method)
             }
             else {
                 let [dom_fragment, _] = buildFragment(renderer)
-                mountFragement(node, dom_fragment)
+                mountFragement(node, dom_fragment, method)
             }
         }       
     }

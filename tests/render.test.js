@@ -176,32 +176,29 @@ ShelfDev.group("Rendering")
 
         }
     )
+
+    ShelfDev.observe(
+        "Template List",
+        () => {
+            test_element.append(document.createElement("app11"))
+
+            let embed = []
+            for(let index of [
+                ...Array(
+                    Math.floor(Math.random() * 20)
+                ).keys()
+            ]) {
+                embed.push(Shelf.template`<li>${index}</li>`)
+            }
+            
+            let temp = Shelf.template`<ul>${embed}</ul>`
+
+            Shelf.render(temp, "app11")
+        }
+    )
 ShelfDev.endGroup()
 
 ShelfDev.group("Component Rendering")
-    ShelfDev.observe(
-        "Component Function", 
-        () => {
-            test_element.append(document.createElement("app8"))
-
-            const comp = (props) => {
-                let sig = Shelf.signal(0)
-
-                setInterval(() => {
-                    sig.value += 1
-                }, 1000)
-
-                return Shelf.template`<div>
-                    <div counter=${[sig, () => {
-                        return  Math.random() * 300
-                    }]}>Stuff here</div>
-                </div>
-                `
-            }
-            
-            Shelf.render(comp, "app8")
-        }
-    )
 ShelfDev.endGroup()
 
 ShelfDev.run()

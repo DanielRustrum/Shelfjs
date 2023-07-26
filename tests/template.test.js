@@ -139,6 +139,17 @@ ShelfDev.group("Templates With Embedded Templates")
             return Shelf.template`<div>${embed}</div>`
         }
     )
+
+    ShelfDev.observe(
+        "Template List",
+        () => {
+            let embed = []
+            for(let index of [0,1,2,3,4,5,6,7]) {
+                embed.push(Shelf.template`<p>${index}</p>`)
+            }
+            return Shelf.template`<div>${embed}</div>`
+        }
+    )
 ShelfDev.endGroup()
 
 ShelfDev.group("Templates With Events")

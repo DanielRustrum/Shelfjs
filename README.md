@@ -18,15 +18,15 @@ A Shelf is a Library meant to clear the weeds through some level of abstraction,
 Components:
 [x] Templates
 [x] Embedded Templates
+[x] Template Lists
+[-] Template Functions 
 [-] Components
-[-] Named Function Components
 
 Rendering:
 [-] Root Element Injection
 [ ] Shadow and Web Component Rendering
 [-] Inject Root Data
 [ ] Scoped Component Rendering
-[-] Function Rendering
 [ ] DOM Manipulation
 
 VDOM:
