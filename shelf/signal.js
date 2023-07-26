@@ -14,23 +14,6 @@
                     const value = Reflect.get(target, prop, receiver)
 
                     if(
-                        !typeof value === "function" &&
-                        Array.isArray(target) &&
-                        [
-                            "copyWithin",
-                            "fill",
-                            "pop",
-                            "push",
-                            "reverse",
-                            "shift",
-                            "sort",
-                            "splice",
-                            "unshift"
-                        ].includes(prop)
-                    ) signal_obj["subscribed"]
-                        .forEach(callback => callback(prop, value));
-
-                    if(
                         typeof value === "function" &&
                         Array.isArray(target) &&
                         [
@@ -48,7 +31,7 @@
                         let wrapper = (...args) => {
                             signal_obj["subscribed"]
                                 .forEach(
-                                    callback => callback(prop, args)
+                                    callback => callback("indirect", prop, args)
                                 );
                             return value.bind(target)(...args)
                         }
@@ -61,7 +44,7 @@
                     Reflect.set(obj, prop, value)
                     
                     signal_obj["subscribed"]
-                        .forEach(callback => callback(prop, value));
+                        .forEach(callback => callback("direct", prop, value));
 
                 }
             });
