@@ -4,9 +4,9 @@ ShelfDev.group("Rendering")
         "Basic", 
         () => {
             test_element.append(document.createElement("app"))
-            Shelf.renderVDOM(
+            Shelf.render(
                 Shelf.template`<h1>test</h1>`,
-                document.querySelector("app")
+                "app"
             )
         }
     )
@@ -22,13 +22,13 @@ ShelfDev.group("Rendering")
                 sig.value += 1
             }, 1000)
 
-            Shelf.renderVDOM(
+            Shelf.render(
                 Shelf.template`<h2>
                     count: ${sig} 
                     <p>hello world!</p>
                     This Doesn't Mutate
                 </h2>`,
-                document.querySelector("app2")
+                "app2"
             )
         }
     )
@@ -44,9 +44,9 @@ ShelfDev.group("Rendering")
                 sig.value += 1
             }, 1000)
 
-            Shelf.renderVDOM(
+            Shelf.render(
                 Shelf.template`<h2 data-signal=${sig}>Another</h2>`,
-                document.querySelector("app3")
+                "app3"
             )
         }
     )
@@ -62,12 +62,12 @@ ShelfDev.group("Rendering")
                 sig.value += 1
             }, 1000)
 
-            Shelf.renderVDOM(
+            Shelf.render(
                 Shelf.template`<div>
                     <p>counter 2: ${sig}</p>
                 </div>
                 `,
-                document.querySelector("app4")
+                "app4"
             )
         }
     )
@@ -83,14 +83,14 @@ ShelfDev.group("Rendering")
                 sig.value += 1
             }, 1000)
 
-            Shelf.renderVDOM(
+            Shelf.render(
                 Shelf.template`<div>
                     <p>counter 3: ${[sig, () => {
                         return  Math.random() * 300
                     }]}</p>
                 </div>
                 `,
-                document.querySelectorAll("app5")
+                "app5"
             )
         }
     )
@@ -106,14 +106,14 @@ ShelfDev.group("Rendering")
                 sig.value += 1
             }, 1000)
 
-            Shelf.renderVDOM(
+            Shelf.render(
                 Shelf.template`<div>
                     <div counter=${[sig, () => {
                         return  Math.random() * 300
                     }]}>Stuff here</div>
                 </div>
                 `,
-                document.querySelector("app6")
+                "app6"
             )
         }
     )
@@ -129,9 +129,56 @@ ShelfDev.group("Rendering")
             )
         }
     )
+
+    ShelfDev.observe(
+        "Basic TT (Template with Template)",
+        () => {
+            test_element.append(document.createElement("app9"))
+
+            let embed = Shelf.template`<p>Hello!</p>`
+            let template = Shelf.template`<div super>${embed}</div>`
+            Shelf.render(template, "app9")
+        }
+    )
+
+    ShelfDev.observe(
+        "Basic Event Listener",
+        () => {
+            test_element.append(document.createElement("app10"))
+
+            let temp = Shelf.template`
+                <button 
+                    [click]=${() => {console.log("clicked")}}
+                >This is a button</button>
+            `
+
+            Shelf.render(temp, "app10")
+
+        }
+    )
+
+    ShelfDev.observe(
+        "Event Listener with Signals",
+        () => {
+            test_element.append(document.createElement("app10"))
+
+            let signal = Shelf.signal(0)
+            let temp = Shelf.template`
+                <p>button has been clicked: ${signal}</p>
+                <button 
+                    [click]=${() => signal.value += 1}
+                >
+                    Click this button
+                </button>
+            `
+
+            Shelf.render(temp, "app10")
+
+        }
+    )
 ShelfDev.endGroup()
 
-ShelfDev.group("Function Rendering")
+ShelfDev.group("Component Rendering")
     ShelfDev.observe(
         "Component Function", 
         () => {

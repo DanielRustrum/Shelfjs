@@ -16,11 +16,12 @@
                     Array.isArray(values[index]) && 
                     values[index][0].render_type === "signal"
                 ) ||
-                values[index].render_type === "component" || (
+                values[index].render_type === "template" || (
                     Array.isArray(values[index]) && 
-                    values[index][0].render_type === "component"
+                    values[index][0].render_type === "template"
                 ) ||
-                values[index].render_type === "child"
+                values[index].render_type === "child" ||
+                typeof values[index] === 'function'
             ) {
                 new_result.push(current_string)
                 current_string = ""
@@ -36,7 +37,7 @@
 
     function buildVDOM(template) {
         let root = {
-            render_type: "component",
+            render_type: "template",
             children: []
         }
 
@@ -101,7 +102,7 @@
                         in_tag && 
                         in_attributes && 
                         (
-                            (!in_attribute_string && !["/", " ", ">", "=", "\"", "'"].includes(char)) ||
+                            (!in_attribute_string && !["/", " ", ">", "=", "\"", "'", "\n"].includes(char)) ||
                             (in_attribute_string && !["\"",].includes(char))
                         ) && 
                         !in_close_tag
@@ -164,7 +165,7 @@
                     if(last_char === "<" && char === "/") 
                         in_close_tag = true;
                     if(char === "\"" && in_attributes)
-                        in_attribute_string = !in_attribute_string
+                        in_attribute_string = !in_attribute_string;
                     
                     // Track Char                
                     last_char = char
@@ -183,8 +184,14 @@
                 }
             }
 
+            if(typeof segment === 'function') {
+                if(in_attributes && attribute.length === 1) {
+                    attribute.push(segment)
+                }
+            }
+
             if(
-                segment.render_type === 'component' ||
+                segment.render_type === 'template' ||
                 segment.render_type === 'child'
             ) {
                 current_node.children.push(segment)
@@ -203,7 +210,7 @@
                     }
                 }
 
-                if(segment[0].render_type === "component") {
+                if(segment[0].render_type === "template") {
                     current_node.children.push(...segment)
                 }
             }
@@ -242,7 +249,7 @@
     Shelf.define = define
 
     function buildFragment(VDOM) {
-        if(VDOM.render_type === 'component') {
+        if(VDOM.render_type === 'template') {
             let node_fragment = new DocumentFragment()
             for (let node of VDOM.children) {
                 let [result_node, _] = buildFragment(node)
@@ -255,7 +262,19 @@
             let element = document.createElement(VDOM["element"])
             
             for (let attr of VDOM.attrs) {
-                if (attr.length === 1)
+                if(
+                    attr[0].startsWith("[") && 
+                    attr[0].endsWith("]")
+                )
+                    element.addEventListener(
+                        attr[0]
+                            .substr(
+                                1,
+                                attr[0].length-2
+                            ),
+                        attr[1]
+                    );
+                else if (attr.length === 1)
                     element.setAttribute(attr[0], "");
                 else if(attr[1].render_type === 'signal') {
                     element.setAttribute(attr[0], attr[1].value)
@@ -390,8 +409,6 @@
 
         }
     }
-
-    Shelf.renderVDOM = renderVDOM
 
     function render(
         renderer,

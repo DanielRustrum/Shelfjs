@@ -1,7 +1,7 @@
 # Shelfjs
 A Front-End JS Library for me to use
 
-## Things the Component System Need to Do:
+## Things A Component/Template System Need to Do:
 - Manage Node based Events
 - Componentise Reactive UI Elements
 - Handle Data Transformations
@@ -9,15 +9,17 @@ A Front-End JS Library for me to use
 - Hide Standard DOM Interactions
 
 ## Docs
-[Getting Started](/docs/getting-started.md)
+[Getting Started](./docs/getting-started.md)
+[Table of Contents](./docs/table-of-contents.md)
 
-## Implementation Plan
+## Road Map
 [x] Signals
 
 Components:
 [x] Templates
-[ ] Embedded Templates
-[ ] Dynamic Components
+[x] Embedded Templates
+[ ] Components
+[ ] Named Function Components
 
 Rendering:
 [ ] Root Element Injection
@@ -29,3 +31,9 @@ Rendering:
 VDOM:
 [ ] Move to WebWorker
 [ ] Event Binding
+[ ] SSR/Server Execution
+
+DX:
+[ ] JSM Support
+[ ] CLI
+[ ] Dev Server

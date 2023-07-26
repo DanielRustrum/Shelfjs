@@ -131,10 +131,35 @@ ShelfDev.group("Templates With Signals")
     )
 ShelfDev.endGroup()
 
-ShelfDev.group("Templates With Embedded Components")
-        
+ShelfDev.group("Templates With Embedded Templates")
+    ShelfDev.observe(
+        "Basic Event Listener",
+        () => {
+            let embed = Shelf.template`<p>Hello!</p>`
+            return Shelf.template`<div>${embed}</div>`
+        }
+    )
 ShelfDev.endGroup()
 
 ShelfDev.group("Templates With Events")
+    ShelfDev.observe(
+        "Basic TT (Template with Template)",
+        () => {
+            return Shelf.template`<button [onclick]=${() => {console.log("clicked")}}>This is a button</button>`
+        }
+    )
+ShelfDev.endGroup()
+
+ShelfDev.group("Templates With Components")
+    // ShelfDev.observe(
+    //     "Basic Component",
+    //     () => {
+    //         let component = () => {
+    //             return shelf.template`<p>Hello World!!!</p>`
+    //         }
+            
+    //         return Shelf.template`<div comp>${component}</div>`
+    //     }
+    // )
 ShelfDev.endGroup()
 
