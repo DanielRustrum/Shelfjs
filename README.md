@@ -1,5 +1,5 @@
 # Shelfjs
-A Front-End JS Library for me to use
+A Shelf is a Library meant to clear the weeds through some level of abstraction, but not shove them under the bed and pretend they don't exist.
 
 ## Things A Component/Template System Need to Do:
 - Manage Node based Events
@@ -18,20 +18,20 @@ A Front-End JS Library for me to use
 Components:
 [x] Templates
 [x] Embedded Templates
-[ ] Components
-[ ] Named Function Components
+[-] Components
+[-] Named Function Components
 
 Rendering:
-[ ] Root Element Injection
+[-] Root Element Injection
 [ ] Shadow and Web Component Rendering
-[ ] Inject Root Data
+[-] Inject Root Data
 [ ] Scoped Component Rendering
-[ ] Function Rendering
+[-] Function Rendering
 [ ] DOM Manipulation
 
 VDOM:
 [ ] Move to WebWorker
-[ ] Event Binding
+[-] Event Binding
 [ ] SSR/Server Execution
 
 DX:
