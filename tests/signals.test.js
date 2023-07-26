@@ -5,12 +5,18 @@ ShelfDev.observe(
         let signal = Shelf.signal([])
 
         Shelf.bindToSignal(signal, () => {
-            console.log(signal.value)
+            console.log("executed")
         })
 
+        
         setInterval(() => {
-            signal.value.push("val")
         }, 1000)
+
+        setTimeout(() => {
+            for(let index of signal.value) {
+                console.log(index)
+            }
+        }, 10000)
 
         return signal
     }
