@@ -142,22 +142,6 @@ ShelfDev.group("Rendering")
     )
 
     ShelfDev.observe(
-        "Basic Event Listener",
-        () => {
-            test_element.append(document.createElement("app10"))
-
-            let temp = Shelf.template`
-                <button 
-                    [click]=${() => {console.log("clicked")}}
-                >This is a button</button>
-            `
-
-            Shelf.render(temp, "app10")
-
-        }
-    )
-
-    ShelfDev.observe(
         "Event Listener with Signals",
         () => {
             test_element.append(document.createElement("app10"))
@@ -183,11 +167,11 @@ ShelfDev.group("Rendering")
             test_element.append(document.createElement("app11"))
 
             let embed = []
-            for(let index of [
-                ...Array(
+            for(let index of 
+                Array(
                     Math.floor(Math.random() * 20)
                 ).keys()
-            ]) {
+            ) {
                 embed.push(Shelf.template`<li>${index}</li>`)
             }
             
