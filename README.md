@@ -27,6 +27,7 @@ Rendering:
 [ ] Inject Root Data
 [ ] Scoped Component Rendering
 [ ] Function Rendering
+[ ] DOM Manipulation
 
 VDOM:
 [ ] Move to WebWorker
