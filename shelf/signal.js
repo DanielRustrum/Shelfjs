@@ -31,7 +31,7 @@
                         let wrapper = (...args) => {
                             signal_obj["subscribed"]
                                 .forEach(
-                                    callback => callback("indirect", prop, args)
+                                    callback => callback(prop, args, "indirect")
                                 );
                             return value.bind(target)(...args)
                         }
@@ -44,7 +44,7 @@
                     Reflect.set(obj, prop, value)
                     
                     signal_obj["subscribed"]
-                        .forEach(callback => callback("direct", prop, value));
+                        .forEach(callback => callback(prop, value, "direct"));
 
                 }
             });

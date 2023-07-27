@@ -232,22 +232,13 @@
     Shelf.template = template
 
     function component(
-        component_function,
-        expected_attributes = [],
-        name = undefined
+        component,
+        
     ) {
         component_map.set(
-            name || component_function.name,
-            [
-                component_function, 
-                expected_attributes
-            ]
+            component.name,
+            component
         )
-
-        return {
-            render_type: 'component',
-            name: name || component_function.name
-        }
     }
 
     Shelf.component = component

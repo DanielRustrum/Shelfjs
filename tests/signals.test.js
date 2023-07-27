@@ -26,22 +26,22 @@ ShelfDev.group("Signals")
     ShelfDev.observe(
         "Signal with Objects",
         () => {
-            let signal = Shelf.signal({})
+            // let signal = Shelf.signal({})
 
-            Shelf.bindToSignal(signal, (mutation, props, value) => {
-                console.log(`executed: ${mutation} ${props} ${value}`)
-            })
+            // Shelf.bindToSignal(signal, ( props, value, mutation) => {
+            //     console.log(`executed: ${mutation} ${props} ${value}`)
+            // })
 
             
-            setInterval(() => {
-                signal.value["test"] = Math.random() * 300
-            }, 1000)
+            // setInterval(() => {
+            //     signal.value["test"] = Math.random() * 300
+            // }, 1000)
 
-            setTimeout(() => {
-                console.log(signal.value.test)
-            }, 10000)
+            // setTimeout(() => {
+            //     console.log(signal.value.test)
+            // }, 10000)
 
-            return signal
+            // return signal
         }
     )
 ShelfDev.endGroup()

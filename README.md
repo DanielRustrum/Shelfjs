@@ -13,28 +13,42 @@ A Shelf is a Library meant to clear the weeds through some level of abstraction,
 [Table of Contents](./docs/table-of-contents.md)
 
 ## Road Map
-[x] Signals
-
+Signals:
+- [x] Primatives
+- [x] Arrays
+- [-] Objects
+- [ ] Improve Array/Object/Signal Interface
+ 
 Components:
-[x] Templates
-[x] Embedded Templates
-[x] Template Lists
-[-] Template Functions 
-[-] Components
+- [ ] Shadow and Web Component Rendering
+- [ ] Direct to DOM Rendering
+- [ ] Foundations
+- [ ] Component Maps
+
 
 Rendering:
-[-] Root Element Injection
-[ ] Shadow and Web Component Rendering
-[-] Inject Root Data
-[ ] Scoped Component Rendering
-[ ] DOM Manipulation
+- [-] Root Element Injection
+- [-] Inject Root Data
+- [ ] DOM Manipulation
+- [ ] Minimize Mutations For Signal Template Lists
+- [ ] Memoize DOM Rendering
 
 VDOM:
-[ ] Move to WebWorker
-[-] Event Binding
-[ ] SSR/Server Execution
+- [x] Templates
+- [x] Embedded Templates
+- [x] Template Lists
+- [-] Template Functions 
+- [ ] Move to WebWorker
+- [-] Event Binding
+- [ ] SSR/Server Execution
+- [ ] Rewrite Parser into Web Assembly
+- [ ] Multiple Signals in Signal Array
 
+Styling:
+- [ ] Dynamic Style Sheets
+- [ ] External Style Attributes
+ 
 DX:
-[ ] JSM Support
-[ ] CLI
-[ ] Dev Server
+- [ ] JSM Support / Better Importing
+- [ ] CLI
+- [ ] Dev Server
