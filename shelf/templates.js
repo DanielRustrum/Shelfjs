@@ -1,6 +1,6 @@
 {
-    const component_map = new Map()
-    
+    let Core = Shelf.__proto__
+
     function collapseTemplate(strings, values) {
         let current_string = "", 
             new_result = []
@@ -229,20 +229,6 @@
         return buildVDOM(collapseTemplate(strings, values))
     }
 
-    Shelf.template = template
-
-    function component(
-        component,
-        
-    ) {
-        component_map.set(
-            component.name,
-            component
-        )
-    }
-
-    Shelf.component = component
-
     function buildFragment(VDOM) {
         if(VDOM.render_type === 'template') {
             let node_fragment = new DocumentFragment()
@@ -392,31 +378,35 @@
         query,
         method = "replaced"
     ) {
-        let root = document.querySelectorAll(query)
+        let root;
+        if(typeof query === "string") {
+            root = document.querySelectorAll(query)
+        } else if(query instanceof NodeList) {
+            root = query
+        } else {
+            root = [query]
+        }
+        
 
-        for(let node of root) {
-            //     let component_data = {
-            //         children: {
-            //             render_type: "child",
-            //             content: node.innerHTML
-            //         }
-            //     }
-
-            //     for (const name of node.getAttributeNames()) {
-            //         const value = node.getAttribute(name)
-            //         component_data[name] = value
-            //     }
-            
-            if(typeof renderer === 'function') { 
+        if (typeof renderer === "function") {
+            for(let node of root) {
                 let [dom_fragment, _] = buildFragment(renderer())
                 mountFragement(node, dom_fragment, method)
-            }
-            else {
+            }  
+        } else {
+            for(let node of root) {
                 let [dom_fragment, _] = buildFragment(renderer)
                 mountFragement(node, dom_fragment, method)
-            }
-        }       
+            }       
+        }
+
     }
 
-    Shelf.render = render
+
+    Core.define("templates", {
+        render,
+        template
+    }, {
+
+    })
 }

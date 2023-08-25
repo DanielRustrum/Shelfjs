@@ -23,7 +23,7 @@ Components:
 - [ ] Shadow and Web Component Rendering
 - [ ] Direct to DOM Rendering
 - [ ] Foundations
-- [ ] Component Maps
+- [-] Component Maps
 
 
 Rendering:

@@ -1,4 +1,5 @@
 {
+    let Core = Shelf.__proto__
     function signal(default_value = undefined) {
         let signal_obj = {
             render_type: 'signal',
@@ -63,8 +64,6 @@
         return signal_obj
     }
 
-    Shelf.signal = signal
-
     function trigger() {
         let signal_obj = {
             render_type: 'signal',
@@ -76,12 +75,19 @@
         
         return signal_obj
     }
-    Shelf.trigger = trigger
-
     
     function bind(signal, callback) {
         signal.subscribed.push(callback)
     }
 
-    Shelf.bindToSignal = bind
+    Core.define(
+        "signals",
+        {
+            signal,
+            trigger
+        },
+        {
+            bind
+        }
+    )
 }
