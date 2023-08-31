@@ -1,6 +1,15 @@
 {
+    // Fetch Core Library
     let Core = Shelf.__proto__
 
+    // Maps
+    let Nodes = new Map()
+    let Elements = new Map()
+    let Attributes = new Map()
+    let Events = new Map()
+    let Primatives = new Map()
+
+    //Templates
     function collapseTemplate(strings, values) {
         let current_string = "", 
             new_result = []
@@ -402,11 +411,24 @@
 
     }
 
+    // Private APIs
+    function addNode(name, parser, builder) {}
+    function addElement(name, parser) {}
+    function addAttribute(name, builder) {}
+    function addEvent(name, builder) {}
+    function respondToPrimative(primative_type, callback) {
+        
+    }
 
-    Core.define("templates", {
+    // Define Module
+    Core.define("template", {
         render,
         template
     }, {
-
+        addNode,
+        addElement,
+        addAttribute,
+        addEvent,
+        respondToPrimative
     })
 }

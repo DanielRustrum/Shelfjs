@@ -2,7 +2,8 @@ let Shelf = {}
 {
     Shelf.__proto__ = {
         imported: [],
-        modules: {}
+        modules: {},
+        hidden_modules: []
     }
 
     // Manage Cross Module Communication
