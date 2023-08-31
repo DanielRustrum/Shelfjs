@@ -1,20 +1,31 @@
 {
     const component_map = new Map()
     
-    function component( 
-        component_function,
-        component_name = ""
-    ) {
-        component_map.set(
-            component_name === ""? component_function.name: component_name,
-            component_function
-        )
-
-        return {
-            render_type: "component",
+    class Component {
+        constructor() {
+            this.tag = this.constructor.name
             
+            this.setup()
+
+            component_map.set(this.tag, this)
         }
     }
+    
+    let count = 0
 
-    Shelf.component = component
+    class ExampleComponent extends Component {
+        setup() {}
+        init({}, children) {
+            console.log(this.attributes)
+            return `
+                <p>count: ${count}</p> 
+                <p>Child: ${children}</p>
+            `
+        }
+        update(attributes, children) {}
+    }
+
+    new ExampleComponent()
+
+    Shelf.Component = Component
 }
