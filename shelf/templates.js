@@ -3,371 +3,166 @@
     let Core = Shelf.__proto__
 
     // Maps
-    let Nodes = new Map()
-    let Elements = new Map()
-    let Attributes = new Map()
-    let Events = new Map()
-    let Primatives = new Map()
+    let reference_handler_map = new Map()
+    let event_handler_map = new Map()
+    let node_handler_map = new Map()
 
-    //Templates
-    function collapseTemplate(strings, values) {
-        let current_string = "", 
-            new_result = []
-        
-        for(
-            let index = 0; 
-            index < values.length; 
-            index += 1
-        ) {  
-            current_string += strings[index]
-
-            if(
-                values[index].render_type === "signal" ||
-                (
-                    Array.isArray(values[index]) && 
-                    values[index][0].render_type === "signal"
-                ) ||
-                values[index].render_type === "template" ||
-                values[index].render_type === "child" ||
-                typeof values[index] === 'function'
-            ) {
-                new_result.push(current_string)
-                current_string = ""
-                new_result.push(values[index])
-            } else if(
-                Array.isArray(values[index]) && 
-                values[index][0].render_type === "template"
-            ) {
-                new_result.push(current_string)
-                current_string = ""
-                new_result.push(...values[index])
-            } else {
-                current_string += values[index]
-            }
+    const hash_retries = 10
+    /** Generates an unique hash for the provide map; based on the hash_size and the value.
+     * 
+     * @param {*} map - The hash_map being used
+     * @param {*} value - the value to hash for
+     * @returns a unique hash based on the hash_size and value.
+     */
+    function generateHash(map, value) {
+        let hash = window.crypto.randomUUID(),
+            retry_count = hash_retries,
+            hash_found = false,
+            crypto = window.crypto.randomUUID
+            
+        while(
+            retry_count <= 0 ||
+            !hash_found
+        ) {
+            if(hash in map) hash_found = true;
+            else hash = crypto()
+            retry_count -= 1
         }
         
-        new_result.push(current_string + strings[strings.length - 1])
-        return new_result
+        if (hash_retries === 0) 
+            return null;
+        return hash
+    }
+    
+    /** Maps the template literal and formats it into 2 parsable data types
+     * 
+     * @param {*} strings - An Array of Strings from the named template literal
+     * @param {*} values - An Array of Values from the named template literal
+     * @returns [An Array of strings, embedded templates, and reference hashes; a map of referenced functions]
+     */
+    function mapLiteral(strings, values) {
+        let reference_map = new Map(),
+            template_array = [],
+            index_strings = ""
+
+        values.push("")
+
+        let values = values
+            .map(value => {
+                if(
+                    tr_type in value &&
+                    tr_type in reference_handler_map.keys()
+                ) {
+                    let hash = generateHash(
+                        reference_map, 
+                        value
+                    )
+
+                    reference_map.set(
+                        hash, {
+                            value,
+                            type: tr_type
+                        }
+                    )
+
+                    return [`!${hash}`]
+                }
+
+                if(
+                    tr_type in value &&
+                    value.tr_type === "template"
+                ) {
+                    return [value]
+                }
+
+                if(
+                    Array.isArray(value) &&
+                    tr_type in value[0] &&
+                    value[0].tr_type === "template"
+                ) {
+                    let composite = ""
+
+                    for(let template_string in value) {
+                        composite += template_string
+                    }
+
+                    return [value.length-1, composite]
+                }
+
+                return String(value)
+            })
+
+        strings.forEach((value, index) => {
+            if(typeof values[index] === "string") {
+                index_strings += value + values[index]
+            } else {
+                index_strings += value
+                template_array.push(index_strings, values[index])
+            }
+        })
+        
+        return [template_array, reference_map]
     }
 
-    function buildVDOM(template) {
-        let root = {
-            render_type: "template",
-            children: []
-        }
-
-        let current_node = root
-
-        let stack = [],
-            attribute = [],
-            attributes = [],
-            content = []
-        
-        let last_char = "",
-            element = "",
-            partial_attribute = "",
-            partial_content = ""
-        
-        
-        let in_tag = false,
-            in_close_tag = false,
-            in_content = false,
-            in_attributes = false,
-            in_attribute_string = false
-        
-        stack.push(root)
-
-        for(let segment of template) {
-            if(typeof segment === "string") {
-                for(let char of segment) {
-                    // Attrs                
-                    if(
-                        in_tag && 
-                        ["=", " ", ">"].includes(char) &&
-                        !in_attribute_string && 
-                        in_attributes && 
-                        !in_close_tag
-                    ) { 
-                        if(partial_attribute !== "")
-                            attribute.push(partial_attribute);
-                        partial_attribute = ""
+    /** Parses the template array into a token-value string
+     * 
+     * **Tokens:** 
+     * 
+     * #| : number of Inner Elements
+     * 
+     * #> : Element with length
+     * 
+     * #! : VDOM hash map reference
+     * 
+     * #" : start of value string 
+     * 
+     * #% : start of attr
+     * 
+     * = : seperation of attr key and value
+     * 
+     * #[ : Event Bind Start
+     * 
+     * ----
+     * 
+     * @param {*} template_array - An Array of strings, values, and reference hashes 
+     * @returns token-value string for easy paring later-on 
+     */
+    function buildTemplateString(template_array) {
+        for(let value of template_array) {
+            if(typeof value === "string") {
+                for(let char in value) {
+                    switch(char) {
+                        case ">":
+                            break
                     }
-                    if(
-                        in_tag && 
-                        (char === " " || char === ">") &&
-                        !in_attribute_string && 
-                        in_attributes && 
-                        !in_close_tag
-                    ){
-                        if(attribute.length !== 0)
-                            attributes.push(attribute);
-                        attribute = []
-                    }
-
-                    // Build Strings               
-                    if(
-                        in_tag && 
-                        !in_attributes && 
-                        !["/", " ", ">"].includes(char) &&
-                        !in_close_tag
-                    )
-                        element += char;
-                    
-                    if(
-                        in_tag && 
-                        in_attributes && 
-                        (
-                            (!in_attribute_string && !["/", " ", ">", "=", "\"", "'", "\n"].includes(char)) ||
-                            (in_attribute_string && !["\"",].includes(char))
-                        ) && 
-                        !in_close_tag
-                    ) 
-                        partial_attribute += char;
-                    
-                    if(in_content && char !== '<') 
-                        partial_content += char;
-                    
-                    // Start Of Tag
-                    if(char === "<") {
-                        in_content = false
-                        if(partial_content !== "")
-                            content.push(partial_content);
-                        if(content.length !== 0 && current_node)
-                            current_node.children.push(content);
-                        content = []
-                        partial_content = ""
-                    }
-                    
-                    // End of Tag                
-                    if(char === ">") {
-                        if(in_tag) {
-                            let node = {
-                                render_type: 'node',
-                                children: []
-                            }
-
-                            if(!in_close_tag) {
-                                node["element"] = element
-                                node["attrs"] = attributes
-                                current_node.children.push(node)
-                                
-                                if(last_char !== "/") {
-                                    stack.push(current_node)
-                                    current_node = node
-                                }
-
-                            } else {
-                                current_node = stack.pop()
-                            }
-                            
-
-                            in_tag = false
-                            in_close_tag = false
-                            in_attributes = false
-
-                            attributes = []
-                            element = ""
-                        }
-                        
-                        in_content = true
-                    }
-                    
-                    // Toggle States                
-                    if(in_tag && char === " ") 
-                        in_attributes = true;
-                    if(char === "<") 
-                        in_tag = true;
-                    if(last_char === "<" && char === "/") 
-                        in_close_tag = true;
-                    if(char === "\"" && in_attributes)
-                        in_attribute_string = !in_attribute_string;
-                    
-                    // Track Char                
-                    last_char = char
-                }
-            }
-
-            if(segment.render_type === 'signal') {
-                if(in_content) {
-                    content.push(partial_content)
-                    content.push(segment)
-                    partial_content = ""
-                }
-                
-                if(in_attributes) {
-                    attribute.push(segment)
-                }
-            }
-
-            if(typeof segment === 'function') {
-                if(in_attributes && attribute.length === 1) {
-                    attribute.push(segment)
                 }
             }
 
             if(
-                segment.render_type === 'template' ||
-                segment.render_type === 'child'
-            ) {
-                current_node.children.push(segment)
-            }
+                Array.isArray(value) &&
+                typeof value[0] === "string"
+            ) {} 
+            
+            if(
+                Array.isArray(value) &&
+                typeof value[0] === "number"
+            ) {} 
 
-            if(Array.isArray(segment)) {
-                if(segment[0].render_type === "signal") {
-                    if(in_content) {
-                        content.push(partial_content)
-                        content.push(segment)
-                        partial_content = ""
-                    }
-
-                    if(in_attributes) {
-                        attribute.push(segment)
-                    }
-                }
-
-                if(segment[0].render_type === "template") {
-                    current_node.children.push(...segment)
-                }
-            }
         }
-
-        return root
     }
     
     function template(strings, ...values) {
-        return buildVDOM(collapseTemplate(strings, values))
+        let [template_array, reference_map] = mapLiteral(strings, values)
+
+        return {
+            tr_type: "template",
+            template_string: buildTemplateString(template_array),
+            references: reference_map
+        }
     }
 
-    function buildFragment(VDOM) {
-        if(VDOM.render_type === 'template') {
-            let node_fragment = new DocumentFragment()
-            for (let node of VDOM.children) {
-                let [result_node, _] = buildFragment(node)
-                node_fragment.append(result_node)
-            }
-            return [node_fragment, {}]
-        }
-
-        if (VDOM.render_type === 'node') {
-            let element = document.createElement(VDOM["element"])
-            
-            for (let attr of VDOM.attrs) {
-                if(
-                    attr[0].startsWith("[") && 
-                    attr[0].endsWith("]")
-                )
-                    element.addEventListener(
-                        attr[0]
-                            .substr(
-                                1,
-                                attr[0].length-2
-                            ),
-                        attr[1]
-                    );
-                else if (attr.length === 1)
-                    element.setAttribute(attr[0], "");
-                else if(attr[1].render_type === 'signal') {
-                    element.setAttribute(attr[0], attr[1].value)
-                    Shelf.bindToSignal(attr[1], value => {
-                        element.setAttribute(attr[0], value)
-                    })
-                } else if(
-                    Array.isArray(attr[1]) && attr[1][0].render_type === 'signal'
-                ) {
-                    if(attr[1][1].constructor.name == 'AsyncFunction')
-                        element.setAttribute(
-                            attr[0], 
-                            attr[1][1]()
-                            .then(()=>{})
-                            .catch(error=>{
-                                throw error;
-                            })
-                        );
-                    else element.setAttribute(
-                        attr[0], 
-                        attr[1][1]()
-                    );
-
-                    Shelf.bindToSignal(attr[1][0], () => {
-                        if(attr[1][1].constructor.name == 'AsyncFunction')
-                            element.setAttribute(
-                                attr[0], 
-                                attr[1][1]()
-                                .then(()=>{})
-                                .catch(error=>{
-                                    throw error;
-                                })
-                            );
-                        else element.setAttribute(
-                            attr[0], 
-                            attr[1][1]()
-                        );
-                    })
-                }
-                else
-                    element.setAttribute(attr[0], attr[1]);       
-            }
-            
-            let index = 0
-            let signals = []
-            for (let node of VDOM.children) {
-                let [result_node, data] = buildFragment(node)
-                
-                if('signals' in data && data.signals.length > 0) {
-                    signals.push([index, data.signals, node])
-                }
-                
-                if(typeof result_node === 'string')
-                    element.insertAdjacentHTML('beforeend', result_node);
-                else
-                    element.append(result_node);
-                index += 1
-            }
-
-            if(signals.length > 0) {
-                for(let signal_data of signals) {
-                    for(let signal of signal_data[1]) {
-                        Shelf.bindToSignal(signal, () => {
-                            let [result_node, _] = buildFragment(signal_data[2])
-                            let old = element.childNodes[signal_data[0]]
-                            old.replaceWith(
-                                result_node
-                            )
-                        })
-                    }
-                }
-            }
-            
-            return [element, {}]
-        }
-
-        if (VDOM.render_type === 'child') {
-            return [VDOM.content, {}]
-        }
-
-        let content_string = ""
-        let signals_content = []
-        for(let content of VDOM) {
-            if (
-                content.render_type === "signal"
-            ) {
-                content_string += content.value
-                signals_content.push(content)
-            } else if(Array.isArray(content) && content[0].render_type === 'signal') {
-                if(content[1].constructor.name == 'AsyncFunction')
-                    content_string += content[1]().then(()=>{}).catch(error=>{throw error;});
-                else content_string += content[1]();
-
-                signals_content.push(content[0])
-            } else {
-                content_string += content
-            }
-        }
+    function buildFragment(parse_string, reference_map) {
         
-        return [document.createTextNode(content_string), {
-            signals: signals_content
-        }]
-
     }
 
     function mountFragement(root, fragment, method) {
@@ -412,23 +207,23 @@
     }
 
     // Private APIs
-    function addNode(name, parser, builder) {}
-    function addElement(name, parser) {}
-    function addAttribute(name, builder) {}
-    function addEvent(name, builder) {}
-    function respondToPrimative(primative_type, callback) {
-        
+    function defineReferences(hook, handler_callback) {
+        reference_handler_map.set(hook, handler_callback)
+    }
+    function defineEvent(hook, handler_callback) {
+        event_handler_map.set( hook, handler_callback )
+    }
+    function defineNode(hook, handler_callback) {
+        node_handler_map.set(hook, handler_callback)
     }
 
     // Define Module
     Core.define("template", {
         render,
-        template
+        define: template
     }, {
-        addNode,
-        addElement,
-        addAttribute,
-        addEvent,
-        respondToPrimative
+        defineReferences,
+        defineEvent,
+        defineNode
     })
 }
