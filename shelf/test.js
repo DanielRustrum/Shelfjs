@@ -1,5 +1,6 @@
-let ShelfDev = {}
 {
+    globalThis.ShelfDev = {}
+
     let test_data = {
         executables: [],
     }

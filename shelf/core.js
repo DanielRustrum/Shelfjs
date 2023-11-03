@@ -1,5 +1,6 @@
-let Shelf = {}
 {
+    globalThis.Shelf = {}
+
     Shelf.__proto__ = {
         imported: [],
         modules: {},
@@ -19,12 +20,11 @@ let Shelf = {}
     Shelf.__proto__.define = define
 
     function request(module_name, method) {
-        if(!(module_name in Shelf.__proto__.imported))
-            return new ReferenceError("Module Not Declared");
-        return (
-            Shelf.__proto__.modules[module_name][method]?? 
-            new ReferenceError("Module Not Declared")
-        );
+        if(!Shelf.__proto__.imported.includes(module_name))
+            throw new ReferenceError("Module Not Declared");
+        if(!(method in Shelf.__proto__.modules[module_name]))
+            throw new ReferenceError("Method Not Declared");
+        return Shelf.__proto__.modules[module_name][method] 
     }
     Shelf.__proto__.request = request
 }
