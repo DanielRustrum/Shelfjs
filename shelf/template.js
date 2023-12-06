@@ -47,10 +47,41 @@
         return new_result
     }
 
-    const buildFragment = (template) => {
-        let fragment = new DocumentFragment()
+    const createNode = (element, attributes) => {
+        let node = document.createElement(element);
 
-        let current_node = fragment
+        for (const attr of attributes) {
+            if(attr.length === 0) continue;
+
+            if(
+                attr[0].startsWith("[") &&
+                attr[0].endsWith("]")
+            ) {
+                let event_name = attr[0].slice(1, -1)
+                if(event_handler_map.has(event_name))
+                    event_handler_map.get(event_name)(node, attr[1]);
+                else
+                    node.addEventListener(event_name, attr[1]);
+            } else {
+                if(attr.length === 2)
+                    node.setAttribute(attr[0], attr[1]);
+                else
+                    node.setAttribute(attr[0], "");
+            }
+        }
+
+        if(node_handler_map.has(element))
+            node.setAttribute("render-node", "");
+
+        return node
+    }
+
+    const finishRender = root => {}
+
+    const buildFragment = (template) => {
+        let root = document.createElement("div")
+
+        let current_node = root
     
         let stack = [],
             attribute = [],
@@ -69,7 +100,7 @@
             in_attributes = false,
             in_attribute_string = false
         
-        stack.push(fragment)
+        stack.push(root)
     
 
         for (const segment of template) {
@@ -137,37 +168,18 @@
                     if(char === ">") {
                         if(in_tag) {
                             if(!in_close_tag) {
-                                let node = document.createElement(element);
-
-                                for (const attr of attributes) {
-                                    if(attr.length === 0) continue;
-
-                                    if(
-                                        attr[0].startsWith("[") &&
-                                        attr[0].endsWith("]")
-                                    ) {
-                                        let event_name = attr[0].slice(1, -1)
-                                        if(event_handler_map.has(event_name))
-                                            event_handler_map.get(event_name)(node, attr[1]);
-                                        else
-                                            node.addEventListener(event_name, attr[1]);
-                                    } else {
-                                        if(attr.length === 2)
-                                            node.setAttribute(attr[0], attr[1]);
-                                        else
-                                            node.setAttribute(attr[0], "");
-                                    }
-                                }
-                                
                                 if(last_char !== "/") {
                                     stack.push(current_node)
-                                    current_node = node
+                                    current_node = createNode(element, attributes)
                                 }
     
                             } else {
-                                let popped_node = stack.pop()
-                                popped_node.append(current_node)
-                                current_node = popped_node
+                                let parent_node = stack.pop()
+
+
+                                parent_node.append(current_node)
+
+                                current_node = parent_node
                             }
                             
     
@@ -203,8 +215,7 @@
                     if(hook_obj.activation === "insert")
                         partial_attribute += String(hook_obj.callback({
                             value: segment,
-                            attribute: attribute.length !== 0? attribute[0]: "",
-                            node: current_node
+                            attribute: attribute.length !== 0? attribute[0]: ""
                         }));
                 }
 
@@ -261,22 +272,5 @@
         defineNode
     })
 
-    let test_temp = template`
-        <h1 test>Hello</h1>
-        <div>
-            sdasdd
-            <p test="11">hi</p>
-            <div>
-                <p>test</p>
-                ${() => "static-loaded"}
-            </div>
-            </div>
-        <button [click]=${async () => {
-            console.log("clicked")
-        }}>Click Me!</button>
-        <name:space>sdfsd</name:space>
-    `
     
-    console.log(test_temp.cloneNode(true))
-    document.querySelector("test").append(test_temp)
 }

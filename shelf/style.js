@@ -1,22 +1,15 @@
 {
-    let style = {}
+    // Fetch Core Library
+    let Core = Shelf.__proto__
 
-    function parseStyleSheet(strings, values) {
-        
-    }
+    const sheet = (strings, ...value) => {}
+    const inline = (strings, ...value) => {}
+    const test = () => console.log("Styling")
 
-    function mountStyleSheet(string) {
-        let sheet_blob = new Blob([string], {
-            type: ""
-        })
-
-        let sheet_url = URL.createObjectURL(sheet_blob)
-    }
-
-    function createStyleSheet(strings, ...values) {
-        return {}
-    }
-    style.sheet = createStyleSheet
-
-    Shelf.style = style
+     // Define Module
+     Core.define("style", {
+        sheet,
+        inline,
+        test
+    }, {})
 }
